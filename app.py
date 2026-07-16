@@ -17,17 +17,17 @@ SUMMARY_FILE = DATA_DIR / "tb_summary.csv"
 DETAIL_FILE = DATA_DIR / "tb_detail.csv"
 QUALITY_FILE = DATA_DIR / "tb_quality.json"
 
-BG = "#F3F2EE"
-PANEL = "#E9E8E3"
-GRID = "#D8D6CF"
-TEXT = "#24313A"
-MUTED = "#7B8288"
-CYAN = "#376F77"
-PURPLE = "#6C688A"
-AMBER = "#9A7B43"
-MAGENTA = "#985E72"
-BLUE = "#4F7087"
-RED = "#A45F64"
+BG = "#F7FAFC"
+PANEL = "#EDF4F6"
+GRID = "#DDE6EA"
+TEXT = "#1D3342"
+MUTED = "#71838F"
+CYAN = "#1F8FA3"
+PURPLE = "#6B75C9"
+AMBER = "#C48B30"
+MAGENTA = "#C4628D"
+BLUE = "#337FB5"
+RED = "#D45B66"
 
 st.set_page_config(page_title="现代投资｜财务数智驾驶舱", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
 
@@ -141,6 +141,33 @@ st.markdown(
     [data-testid="stPlotlyChart"] {background:transparent; border:0; border-radius:0; box-shadow:none; padding:0;}
     div[data-testid="stDataFrame"] {border:0; border-radius:4px; box-shadow:none;}
     hr {border-color:#D7D5CE!important;}
+    .stApp {background:#F7FAFC; color:#1D3342;}
+    [data-testid="stHeader"] {background:rgba(247,250,252,.95);}
+    .brand-eyebrow {color:#1F8FA3;}.brand-title {color:#163041;}.brand-sub {color:#71838F;}
+    .live-pill {background:#E6F1F4; color:#426874;}.live-dot {background:#1F8FA3;}
+    [data-baseweb="select"] > div, [data-baseweb="input"] > div {background:#EDF4F6; color:#1D3342;}
+    div[data-testid="stSegmentedControl"] div[role="radiogroup"] {background:#EDF4F6;}
+    div[data-testid="stSegmentedControl"] button[aria-checked="true"] {background:#D8ECF1!important; color:#176B7A!important;}
+    div[data-testid="stRadio"] div[role="radiogroup"] {display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.25rem; width:100%; background:#EDF4F6; padding:.25rem; border-radius:5px;}
+    div[data-testid="stRadio"] div[role="radiogroup"] label {justify-content:center; padding:.48rem .35rem; border-radius:4px;}
+    div[data-testid="stRadio"] div[role="radiogroup"] label > div:first-child {display:none;}
+    div[role="radiogroup"] label:has(input:checked) {background:#D8ECF1; color:#176B7A;}
+    .kpi-grid {background:#EDF4F6;}
+    .kpi-label {color:#71838F;}.kpi-value {color:#173243;}.kpi-foot {color:#82929C;}
+    .section-index {color:#1F8FA3;}.section-title {color:#1D3342;}.section-line {background:#DDE6EA;}
+    .statement-panel.profit {background:#F0F0FA;}.statement-panel.cash {background:#EAF6F7;}.statement-panel.balance {background:#F8F3E8;}
+    .statement-name,.statement-row b {color:#203746;}.statement-row {color:#657B87;}
+    .formula-card {background:#EDF4F6; color:#5D727E;}.formula-card b {color:#1D3342;}.formula-op {color:#1F8FA3;}
+    div[data-testid="stButton"] button {background:#EDF4F6; color:#1D3342; border:0; box-shadow:none; border-radius:5px;}
+    div[data-testid="stButton"] button:hover {background:#E3EFF2; color:#176B7A; border:0;}
+    div[data-testid="stButton"] button[kind="primary"] {background:#D8ECF1; color:#176B7A; border:0;}
+    .drill-shell {background:#EAF4F7; padding:1rem 1.15rem; border-radius:5px; margin:.2rem 0 1.2rem;}
+    .drill-kicker {font-size:.7rem; letter-spacing:.12em; color:#1F8FA3; font-weight:600;}
+    .drill-title {font-size:1.12rem; color:#173243; font-weight:600; margin:.22rem 0;}
+    .drill-formula {color:#536A76; font-size:.86rem;}
+    .st-key-kpi_actions {background:#EDF4F6; padding:.35rem; border-radius:6px; margin:.55rem 0 1.15rem;}
+    .st-key-kpi_actions div[data-testid="stButton"] button {min-height:112px; justify-content:flex-start; text-align:left; padding:.85rem 1rem;}
+    .st-key-kpi_actions div[data-testid="stButton"] button p {white-space:pre-line; text-align:left; line-height:1.55;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -201,6 +228,101 @@ def kpi_card(label: str, value: str, foot: str, accent: str, cls: str = "") -> s
     )
 
 
+DRILL_COMPONENTS = {
+    "营业收入": [("利润表", "营业总收入", "指标原值")],
+    "净利润": [
+        ("利润表", "营业利润", "经营起点：营业利润"),
+        ("利润表", "营业外收入", "加：营业外收入"),
+        ("利润表", "营业外支出", "减：营业外支出"),
+        ("利润表", "利润总额", "利润总额"),
+        ("利润表", "所得税费用", "减：所得税费用"),
+        ("利润表", "五、净利润", "计算结果"),
+    ],
+    "经营现金净额": [("现金流量表", "经营活动产生的现金流量净额", "指标原值")],
+    "资产总额": [("资产负债表", "资产总计", "指标原值")],
+    "资产负债率": [
+        ("资产负债表", "负债合计", "分子：负债总额"),
+        ("资产负债表", "资产总计", "分母：资产总额"),
+    ],
+    "现金质量": [
+        ("现金流量表", "经营活动产生的现金流量净额", "分子：经营现金净额"),
+        ("利润表", "五、净利润", "分母：净利润"),
+    ],
+}
+
+
+def metric_formula(metric: str, row: pd.Series) -> str:
+    formulas = {
+        "营业收入": f"直接取利润表“营业总收入”＝{row['营业收入']:,.2f} 万元",
+        "净利润": f"利润总额 {row['利润总额']:,.2f} － 所得税费用 {row['利润总额'] - row['净利润']:,.2f} ＝ 净利润 {row['净利润']:,.2f} 万元",
+        "经营现金净额": f"直接取现金流量表“经营活动产生的现金流量净额”＝{row['经营现金净额']:,.2f} 万元",
+        "资产总额": f"直接取资产负债表“资产总计”＝{row['资产总额']:,.2f} 万元",
+        "资产负债率": f"负债总额 {row['负债总额']:,.2f} ÷ 资产总额 {row['资产总额']:,.2f} ＝ {row['资产负债率']:.2%}",
+        "现金质量": f"经营现金净额 {row['经营现金净额']:,.2f} ÷ 净利润 {row['净利润']:,.2f} ＝ {row['现金质量']:.2f} 倍",
+    }
+    return formulas[metric]
+
+
+def drill_rows(metric: str, year: int, entity: str, detail_frame: pd.DataFrame) -> pd.DataFrame:
+    rows: list[dict] = []
+    for section, pattern, role in DRILL_COMPONENTS[metric]:
+        candidates = detail_frame[
+            detail_frame["year"].eq(year)
+            & detail_frame["entity"].eq(entity)
+            & detail_frame["section"].eq(section)
+            & detail_frame["account_key"].str.contains(pattern, regex=False, na=False)
+        ].sort_values("row_no")
+        if candidates.empty:
+            continue
+        source = candidates.iloc[0]
+        rows.append({
+            "计算角色": role,
+            "报表": section,
+            "TB行号": int(source["row_no"]),
+            "原始科目": source["account"],
+            "原始金额（元）": source["value_yuan"],
+            "换算金额（万元）": source["value_wan"],
+        })
+    return pd.DataFrame(rows)
+
+
+def render_drill(metric: str, year: int, entity: str, row: pd.Series, detail_frame: pd.DataFrame) -> None:
+    display_name = "营业总收入" if metric == "营业收入" else metric
+    st.markdown(
+        f'<div class="drill-shell"><div class="drill-kicker">METRIC DRILL-THROUGH</div>'
+        f'<div class="drill-title">{html.escape(display_name)}｜底层数据与计算逻辑</div>'
+        f'<div class="drill-formula">{html.escape(metric_formula(metric, row))}</div></div>',
+        unsafe_allow_html=True,
+    )
+    evidence = drill_rows(metric, year, entity, detail_frame)
+    st.dataframe(
+        evidence,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "原始金额（元）": st.column_config.NumberColumn(format="%.2f"),
+            "换算金额（万元）": st.column_config.NumberColumn(format="%.2f"),
+        },
+    )
+    sections = sorted({section for section, _, _ in DRILL_COMPONENTS[metric]})
+    with st.expander("继续穿透：查看相关主表全部非零科目"):
+        statement_rows = detail_frame[
+            detail_frame["year"].eq(year)
+            & detail_frame["entity"].eq(entity)
+            & detail_frame["section"].isin(sections)
+            & detail_frame["value_wan"].ne(0)
+        ][["section", "row_no", "account", "value_yuan", "value_wan"]].copy()
+        statement_rows.columns = ["报表", "TB行号", "原始科目", "原始金额（元）", "换算金额（万元）"]
+        st.dataframe(statement_rows, use_container_width=True, hide_index=True, height=420)
+        st.download_button(
+            "导出穿透明细",
+            statement_rows.to_csv(index=False).encode("utf-8-sig"),
+            file_name=f"{year}_{entity}_{display_name}_穿透明细.csv",
+            mime="text/csv",
+            key=f"download_drill_{metric}_{year}_{entity}",
+        )
+
+
 def section_head(index: str, title: str) -> None:
     st.markdown(
         f'<div class="section-head"><span class="section-index">{index}</span>'
@@ -216,9 +338,9 @@ def style_chart(fig: go.Figure, height: int = 410) -> go.Figure:
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Inter, Microsoft YaHei", color=TEXT),
-        title=dict(font=dict(size=16, color="#EDF7FF"), x=0.025),
+        title=dict(font=dict(size=16, color=TEXT), x=0.025),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color=MUTED)),
-        hoverlabel=dict(bgcolor="#10263A", bordercolor="#2E5570", font_color=TEXT),
+        hoverlabel=dict(bgcolor="#FFFFFF", bordercolor="#DDE6EA", font_color=TEXT),
     )
     fig.update_xaxes(gridcolor=GRID, linecolor=GRID, tickfont_color=MUTED, title_font_color=MUTED, zeroline=False)
     fig.update_yaxes(gridcolor=GRID, linecolor=GRID, tickfont_color=MUTED, title_font_color=MUTED, zeroline=False)
@@ -263,10 +385,11 @@ summary = enrich(summary_raw)
 years = sorted(summary["year"].astype(int).unique().tolist())
 
 header_slot = st.empty()
-page = st.segmented_control(
+page = st.radio(
     "导航",
     ["联动总览", "三表趋势", "经营效能", "公司矩阵", "科目穿透"],
-    default="联动总览",
+    index=0,
+    horizontal=True,
     label_visibility="collapsed",
 )
 filter_year, filter_entity = st.columns([0.75, 1.65], vertical_alignment="bottom")
@@ -301,7 +424,7 @@ header_slot.markdown(
 
 
 if page == "联动总览":
-    cards = []
+    kpi_items = []
     for label, field, formatter, accent in [
         ("营业总收入", "营业收入", money, PURPLE), ("净利润", "净利润", money, MAGENTA),
         ("经营现金净额", "经营现金净额", money, CYAN), ("资产总额", "资产总额", money, BLUE),
@@ -309,8 +432,25 @@ if page == "联动总览":
     ]:
         prev_val = previous[field] if previous is not None and field in previous else None
         foot, cls = yoy_text(current[field], prev_val) if field != "现金质量" else ("经营现金净额 ÷ 净利润", "")
-        cards.append(kpi_card(label, formatter(current[field]), foot, accent, cls))
-    st.markdown('<div class="kpi-grid">' + "".join(cards) + "</div>", unsafe_allow_html=True)
+        kpi_items.append((label, field, formatter(current[field]), foot))
+    with st.container(key="kpi_actions"):
+        kpi_columns = st.columns(len(kpi_items))
+        for column, (label, field, value, foot) in zip(kpi_columns, kpi_items):
+            active = st.session_state.get("drill_metric") == field
+            if column.button(
+                f"{label}\n\n**{value}**\n\n{foot}\n点击穿透 ›",
+                key=f"drill_button_{field}",
+                use_container_width=True,
+                type="primary" if active else "secondary",
+            ):
+                st.session_state["drill_metric"] = field
+                st.rerun()
+
+    if st.session_state.get("drill_metric") in DRILL_COMPONENTS:
+        render_drill(st.session_state["drill_metric"], selected_year, selected_entity, current, detail)
+        if st.button("关闭穿透", key="close_drill"):
+            st.session_state.pop("drill_metric", None)
+            st.rerun()
 
     section_head("01", "三张主表联动链")
     statement_linkage(current)
