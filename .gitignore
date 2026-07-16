@@ -12,3 +12,4 @@ venv/
 .auto_update.lock
 财务月度数据模板.xlsx
 行业对标数据模板.xlsx
+data/*TB*.xls

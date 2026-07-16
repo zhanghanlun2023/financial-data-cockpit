@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from tb_parser import parse_tb
+
 
 ROOT = Path(__file__).resolve().parent
 INBOX = ROOT / "待处理数据"
@@ -223,7 +225,16 @@ def backup_target(target: Path) -> None:
         shutil.copy2(target, destination)
 
 
-def install_dataset(source: Path) -> Path:
+def install_dataset(source: Path) -> list[Path]:
+    if "tb" in source.name.lower() and source.suffix.lower() == ".xls":
+        targets = [DATA_DIR / "tb_detail.csv", DATA_DIR / "tb_summary.csv", DATA_DIR / "tb_quality.json"]
+        for target in targets:
+            backup_target(target)
+        detail, summary, audit = parse_tb(source)
+        detail.to_csv(targets[0], index=False, encoding="utf-8-sig")
+        summary.to_csv(targets[1], index=False, encoding="utf-8-sig")
+        targets[2].write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
+        return targets
     kind = file_kind(source)
     frame = read_tabular(source, kind)
     if kind == "benchmark":
@@ -236,7 +247,7 @@ def install_dataset(source: Path) -> Path:
     temporary = target.with_suffix(target.suffix + ".tmp")
     validated.to_csv(temporary, index=False, encoding="utf-8-sig")
     temporary.replace(target)
-    return target
+    return [target]
 
 
 def run_git_publish(changed_targets: list[Path]) -> str:
@@ -260,7 +271,7 @@ def move_with_stamp(source: Path, destination_folder: Path) -> Path:
 def process_inbox(publish: bool = True) -> int:
     ensure_directories()
     files = sorted(
-        [path for path in INBOX.iterdir() if path.is_file() and path.suffix.lower() in {".csv", ".xlsx", ".xlsm"}],
+        [path for path in INBOX.iterdir() if path.is_file() and path.suffix.lower() in {".csv", ".xlsx", ".xlsm", ".xls"}],
         key=lambda path: path.stat().st_mtime,
     )
     if not files:
@@ -271,11 +282,11 @@ def process_inbox(publish: bool = True) -> int:
     success_count = 0
     for source in files:
         try:
-            target = install_dataset(source)
-            changed_targets.append(target)
+            targets = install_dataset(source)
+            changed_targets.extend(targets)
             processed_path = move_with_stamp(source, PROCESSED)
             success_count += 1
-            write_log("SUCCESS", "数据校验并安装成功", source=source.name, target=target.name, archived=str(processed_path))
+            write_log("SUCCESS", "数据校验并安装成功", source=source.name, targets=[x.name for x in targets], archived=str(processed_path))
         except Exception as exc:
             failed_path = move_with_stamp(source, FAILED)
             write_log("ERROR", "数据处理失败，线上数据未更新", source=source.name, error=str(exc), archived=str(failed_path))

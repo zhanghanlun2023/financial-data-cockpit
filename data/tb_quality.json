@@ -1,0 +1,68 @@
+{
+  "source_file": "2020年-2025年TB.xls",
+  "years": [
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "detail_records": 31087,
+  "accounts": 667,
+  "sheet_audit": [
+    {
+      "year": 2020,
+      "sheet": "2020年",
+      "entities": 19,
+      "numeric_records": 5389,
+      "group_source": "2020年审定数"
+    },
+    {
+      "year": 2021,
+      "sheet": "2021",
+      "entities": 13,
+      "numeric_records": 4854,
+      "group_source": "2021年审定数"
+    },
+    {
+      "year": 2022,
+      "sheet": "2022年",
+      "entities": 14,
+      "numeric_records": 6690,
+      "group_source": "审定数"
+    },
+    {
+      "year": 2023,
+      "sheet": "2023年",
+      "entities": 15,
+      "numeric_records": 2983,
+      "group_source": "抵销/调整后金额"
+    },
+    {
+      "year": 2024,
+      "sheet": "2024年",
+      "entities": 12,
+      "numeric_records": 5808,
+      "group_source": "2024审定数"
+    },
+    {
+      "year": 2025,
+      "sheet": "2025年",
+      "entities": 11,
+      "numeric_records": 5363,
+      "group_source": "审定数"
+    }
+  ],
+  "group_metric_coverage": {
+    "资产总额": 6,
+    "负债总额": 6,
+    "营业收入": 6,
+    "营业成本": 6,
+    "利润总额": 6,
+    "净利润": 6,
+    "经营现金净额": 6,
+    "现金净增加额": 6
+  },
+  "balance_check_max_abs_wan": 0.0
+}
