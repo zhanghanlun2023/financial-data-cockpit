@@ -29,3 +29,7 @@ python -m streamlit run app.py
 ```powershell
 python generate_mock_data.py
 ```
+
+## 全自动更新
+
+将符合模板的数据文件放入 `待处理数据`，自动任务会校验、备份、更新 GitHub 并触发 Streamlit 重新部署。详见 `全自动更新说明.md`。

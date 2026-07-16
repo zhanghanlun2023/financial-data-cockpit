@@ -4,3 +4,11 @@ __pycache__/
 venv/
 .env
 .DS_Store
+待处理数据/
+已处理/
+处理失败/
+备份/
+日志/
+.auto_update.lock
+财务月度数据模板.xlsx
+行业对标数据模板.xlsx
