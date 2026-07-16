@@ -17,19 +17,19 @@ SUMMARY_FILE = DATA_DIR / "tb_summary.csv"
 DETAIL_FILE = DATA_DIR / "tb_detail.csv"
 QUALITY_FILE = DATA_DIR / "tb_quality.json"
 
-BG = "#0B0D12"
-PANEL = "#151A22"
-GRID = "#2A3039"
-TEXT = "#E5E7EB"
-MUTED = "#8A919C"
-CYAN = "#76B9C8"
-PURPLE = "#8F8AB5"
-AMBER = "#C6A66A"
-MAGENTA = "#B9798F"
-BLUE = "#6E95B5"
-RED = "#C7787E"
+BG = "#F3F2EE"
+PANEL = "#E9E8E3"
+GRID = "#D8D6CF"
+TEXT = "#24313A"
+MUTED = "#7B8288"
+CYAN = "#376F77"
+PURPLE = "#6C688A"
+AMBER = "#9A7B43"
+MAGENTA = "#985E72"
+BLUE = "#4F7087"
+RED = "#A45F64"
 
-st.set_page_config(page_title="现代投资｜财务数智驾驶舱", page_icon="◈", layout="wide")
+st.set_page_config(page_title="现代投资｜财务数智驾驶舱", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown(
     """
@@ -88,6 +88,59 @@ st.markdown(
     hr {border-color:#272D36!important;}
     @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.link-grid{grid-template-columns:1fr}.flow-arrow{height:38px;transform:rotate(90deg)}}
     @media(max-width:700px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.topbar{flex-direction:column}.brand-title{font-size:1.55rem}}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <style>
+    .stApp {background:#F3F2EE; color:#24313A;}
+    [data-testid="stHeader"] {background:rgba(243,242,238,.94);}
+    [data-testid="stSidebar"] {display:none;}
+    .block-container {max-width:1460px; padding-top:1.1rem;}
+    .topbar {align-items:center; margin:.55rem 0 1.15rem;}
+    .brand-eyebrow {color:#376F77; font-weight:600;}
+    .brand-title {color:#1E2A32; font-size:1.85rem; font-weight:600; letter-spacing:-.02em;}
+    .brand-sub {color:#7B8288;}
+    .live-pill {background:#E5E4DF; color:#56636A; border:0; border-radius:4px;}
+    .live-dot {background:#376F77;}
+    [data-baseweb="select"] > div, [data-baseweb="input"] > div {
+      background:#E8E7E2; color:#24313A; border:0; box-shadow:none; border-radius:4px;
+    }
+    [data-testid="stWidgetLabel"] p {color:#6F777D; font-size:.78rem; letter-spacing:.03em;}
+    div[data-testid="stSegmentedControl"] {margin:.15rem 0 .55rem;}
+    div[data-testid="stSegmentedControl"] div[role="radiogroup"] {background:#E8E7E2; border:0; box-shadow:none; border-radius:4px;}
+    div[data-testid="stSegmentedControl"] button {border:0!important; box-shadow:none!important; border-radius:3px!important;}
+    div[data-testid="stSegmentedControl"] button[aria-checked="true"] {background:#DCE5E3!important; color:#294F55!important;}
+    .kpi-grid {gap:0; margin:.65rem 0 1.45rem; background:#E9E8E3; border-radius:4px;}
+    .kpi-card {background:transparent; min-height:104px; border:0; border-radius:0; box-shadow:none; padding:1rem 1.15rem;}
+    .kpi-label {color:#777F85;}
+    .kpi-value {color:#1E2A32; font-weight:600;}
+    .kpi-foot {color:#858C91;}
+    .kpi-foot.up {color:#477967;} .kpi-foot.down {color:#A45F64;}
+    .section-index {color:#376F77;}
+    .section-title {color:#24313A; font-weight:600;}
+    .section-line {background:#D7D5CE;}
+    .statement-panel {border:0; border-radius:4px; box-shadow:none; color:#24313A;}
+    .statement-panel.profit {background:#E8E6E1;}
+    .statement-panel.cash {background:#E3E9E8;}
+    .statement-panel.balance {background:#ECE8DE;}
+    .statement-panel.profit .statement-tag {color:#6C688A;}
+    .statement-panel.cash .statement-tag {color:#376F77;}
+    .statement-panel.balance .statement-tag {color:#8A7040;}
+    .statement-name,.statement-row b {color:#26323A;}
+    .statement-row {color:#657077; border-bottom:1px solid rgba(62,75,83,.08);}
+    .statement-foot,.flow-arrow span {color:#7B8288;}
+    .flow-arrow .arrow-line {background:#789198;}
+    .flow-arrow .arrow-line:after {border-color:#789198;}
+    .formula-card {background:#E8E7E2; color:#58646B; border:0; border-radius:4px;}
+    .formula-card b {color:#24313A;}.formula-op {color:#376F77;}.formula-result {color:#8A7040;}
+    .mini-note {color:#7B8288;}
+    [data-testid="stPlotlyChart"] {background:transparent; border:0; border-radius:0; box-shadow:none; padding:0;}
+    div[data-testid="stDataFrame"] {border:0; border-radius:4px; box-shadow:none;}
+    hr {border-color:#D7D5CE!important;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -178,10 +231,10 @@ def statement_linkage(row: pd.Series) -> None:
         <div class="link-grid">
           <div class="statement-panel profit">
             <div class="statement-tag">INCOME STATEMENT</div><div class="statement-name">利润表｜经营成果</div>
-            <div class="statement-row"><span>营业收入</span><b>{money(row['营业收入'])}</b></div>
+            <div class="statement-row"><span>营业总收入</span><b>{money(row['营业收入'])}</b></div>
             <div class="statement-row"><span>利润总额</span><b>{money(row['利润总额'])}</b></div>
             <div class="statement-row"><span>净利润</span><b>{money(row['净利润'])}</b></div>
-            <div class="statement-foot">收入 × 净利率 → 净利润</div>
+            <div class="statement-foot">营业总收入 × 净利率 → 净利润</div>
           </div>
           <div class="flow-arrow"><div class="arrow-line"></div><span>利润<br>转化</span></div>
           <div class="statement-panel cash">
@@ -209,17 +262,21 @@ summary_raw, detail, quality = load_tb()
 summary = enrich(summary_raw)
 years = sorted(summary["year"].astype(int).unique().tolist())
 
-with st.sidebar:
-    st.markdown("### ◈ 财务数智中心")
-    st.caption("FINANCIAL INTELLIGENCE OS")
-    st.divider()
-    page = st.radio("导航", ["联动总览", "三表趋势", "经营效能", "公司矩阵", "科目穿透"], label_visibility="collapsed")
-    st.divider()
+header_slot = st.empty()
+page = st.segmented_control(
+    "导航",
+    ["联动总览", "三表趋势", "经营效能", "公司矩阵", "科目穿透"],
+    default="联动总览",
+    label_visibility="collapsed",
+)
+filter_year, filter_entity = st.columns([0.75, 1.65], vertical_alignment="bottom")
+with filter_year:
     selected_year = st.selectbox("分析年度", years, index=len(years) - 1)
-    year_entities = summary[summary["year"].eq(selected_year)].sort_values(["scope", "entity"])["entity"].tolist()
-    year_entities = ["集团审定口径"] + [x for x in year_entities if x != "集团审定口径"]
+year_entities = summary[summary["year"].eq(selected_year)].sort_values(["scope", "entity"])["entity"].tolist()
+year_entities = ["集团审定口径"] + [x for x in year_entities if x != "集团审定口径"]
+with filter_entity:
     selected_entity = st.selectbox("分析主体", year_entities)
-    st.caption("全局筛选同时驱动三张主表及全部联动指标")
+st.caption("年度和主体筛选同步驱动三张主表、杜邦指标及科目穿透。")
 
 current_rows = summary[(summary["year"].eq(selected_year)) & (summary["entity"].eq(selected_entity))]
 if current_rows.empty:
@@ -230,7 +287,7 @@ previous_rows = summary[(summary["year"].eq(selected_year - 1)) & (summary["enti
 previous = previous_rows.iloc[0] if not previous_rows.empty else None
 entity_history = summary[summary["entity"].eq(selected_entity)].sort_values("year")
 
-st.markdown(
+header_slot.markdown(
     f"""
     <div class="topbar">
       <div><div class="brand-eyebrow">MODERN INVESTMENT · FINANCIAL INTELLIGENCE</div>
@@ -246,7 +303,7 @@ st.markdown(
 if page == "联动总览":
     cards = []
     for label, field, formatter, accent in [
-        ("营业收入", "营业收入", money, PURPLE), ("净利润", "净利润", money, MAGENTA),
+        ("营业总收入", "营业收入", money, PURPLE), ("净利润", "净利润", money, MAGENTA),
         ("经营现金净额", "经营现金净额", money, CYAN), ("资产总额", "资产总额", money, BLUE),
         ("资产负债率", "资产负债率", pct, AMBER), ("现金质量", "现金质量", multiple, CYAN),
     ]:
@@ -330,7 +387,7 @@ elif page == "三表趋势":
     fig3 = go.Figure(go.Heatmap(
         z=normalized.values, x=[str(x) for x in normalized.columns], y=normalized.index,
         customdata=heat.values,
-        colorscale=[[0, "#4C1E4F"], [.5, "#102438"], [1, "#0BB6C9"]], zmid=0,
+        colorscale=[[0, "#A77A88"], [.5, "#EEECE7"], [1, "#5C8588"]], zmid=0,
         hovertemplate="%{y}｜%{x}年<br>原值：%{customdata:.2f}<extra></extra>", colorbar_title="相对强度",
     ))
     fig3.update_layout(title="六项联动指标相对强度（按指标自身尺度标准化）")
@@ -417,7 +474,7 @@ elif page == "科目穿透":
 
 with st.expander("指标口径与数据说明"):
     st.write("集团口径取各年度 TB 的审定数或抵销/调整后金额；金额统一由元换算为万元。")
-    st.write("所有者权益＝资产总额－负债总额；现金质量＝经营现金净额÷净利润；简化杜邦 ROE＝净利率×总资产周转率×权益乘数。")
+    st.write("净利率＝净利润÷营业总收入；所有者权益＝资产总额－负债总额；现金质量＝经营现金净额÷净利润；简化杜邦 ROE＝净利率×总资产周转率×权益乘数。")
     st.caption("杜邦指标使用期末资产和期末权益，适合驾驶舱联动观察；正式财务分析可在取得期初数后改用平均资产、平均权益。")
 
 st.markdown(
